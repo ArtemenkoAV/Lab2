@@ -26,8 +26,8 @@ while choiseOS:
                 if kos.replace('.', '', 1).isdigit():   # проверка чтоб пользователь вводил только числовые значения
                     kos = float(kos)
                     wos = matlab.tf([kos], [1])
-
                     os = False
+                    asa = 1
                 else:
                     print("Введите допустимое значение!")
 
@@ -39,8 +39,8 @@ while choiseOS:
                 if kos.replace('.', '', 1).isdigit():
                     kos = float(kos)
                     wos = matlab.tf([kos, 0], [1])
-
                     os = False
+                    asa = 2
                 else:
                     print("Введите допустимое значение!")
         elif userInput == 3:
@@ -53,8 +53,8 @@ while choiseOS:
                     kos = float(kos)
                     tos = float(tos)
                     wos = matlab.tf([kos], [tos, 1])
-
                     os = False
+                    asa = 3
                 else:
                     print("Введите допустимое значение!")
         elif userInput == 4:
@@ -67,8 +67,8 @@ while choiseOS:
                     kos = float(kos)
                     tos = float(tos)
                     wos = matlab.tf([kos, 0], [tos, 1])
-
                     os = False
+                    asa = 4
                 else:
                     print("Введите допустимое значение!")
         else:
@@ -240,8 +240,15 @@ pyplot.grid(True)
 pyplot.show()
 
 # Определение предельного значения коэффициента обратнаой связи, при котором САУ теряет устойчивост
-for kockrit in numpy.arange(0, 10, 0.001):
-    koc = matlab.tf([kockrit], [1])
+for kockrit in numpy.arange(0, 5, 0.001):
+    if (asa == 1):
+        koc = matlab.tf([kockrit], [1])
+    elif (asa == 2):
+        koc = matlab.tf([kockrit, 0], [1])
+    elif (asa == 3):
+        koc = matlab.tf([kockrit], [tos, 1])
+    elif (asa == 4):
+        koc = matlab.tf([kockrit, 0], [tos, 1])
     wo = matlab.feedback(w5, koc)
     koef = wo.den[0][0]
     position = {}
@@ -249,14 +256,23 @@ for kockrit in numpy.arange(0, 10, 0.001):
     for j in range(nomer):
         position["%s" % j] = koef[j]
     matrix = numpy.array([[position["1"], position["3"]], [position["0"], position["2"]]])
-    if (numpy.linalg.det(matrix) >= -0.01) & (numpy.linalg.det(matrix) <= 0.02):
+    # print(numpy.linalg.det(matrix))
+    if (numpy.linalg.det(matrix) >= -0.1) & (numpy.linalg.det(matrix) <= 0.1):
         print(matrix)
         print("определитель =", numpy.linalg.det(matrix))
         print("предел знач", kockrit)
         kocitog = kockrit
 
 # Производим экспериментальную проверку предельного значения коэффициента обратной свзяи
-wockrit = matlab.tf([kocitog], [1])
+os = kocitog
+if (asa == 1):
+    wockrit = matlab.tf([os], [1])
+elif (asa == 2):
+    wockrit = matlab.tf([kocitog, 0], [1])
+elif (asa == 3):
+    wockrit = matlab.tf([kocitog], [tos, 1])
+elif (asa == 4):
+    wockrit = matlab.tf([kocitog, 0], [tos, 1])
 w = matlab.feedback(w5, wockrit)
 print("Разомкнутая передаточная функция")
 wraz = matlab.series(w3, w4, w2, wockrit)
